@@ -19,7 +19,7 @@ us by posting to wuseman@nr1.nu
 
 Visit our homepage for the latest info and updated tools
 
-https://snr1.nu & https://github.com/wuseman/
+https://nr1.nu & https://github.com/wuseman/
 
 #### END!
 
