@@ -1,0 +1,217 @@
+#!/bin/bash
+##################################################################################
+##### LICENSE ####################################################################
+##################################################################################
+####                                                                          ####
+#### Copyright (C) 2018 wuseman <info@sendit.nu>                              ####
+####                                                                          ####
+#### This program is free software: you can redistribute it and/or modify     ####
+#### it under the terms of the GNU General Public License as published by     ####
+#### the Free Software Foundation, either version 3 of the License, or        ####
+#### (at your option) any later version.                                      ####
+####                                                                          ####
+#### This program is distributed in the hope that it will be useful,          ####
+#### but WITHOUT ANY WARRANTY; without even the implied warranty of           ####
+#### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ####
+#### GNU General Public License at <http://www.gnu.org/licenses/> for         ####
+#### more details.                                                            ####
+####                                                                          ####
+##################################################################################
+##### GREETINGS ##################################################################
+##################################################################################
+####                                                                          ####
+#### To all developers that contributes to all kind of open source projects   ####
+#### Keep up the good work!                                                   #<3#
+####                                                                          ####
+#### https://sendit.nu & https://github.com/wuseman                           ####
+####                                                                          ####
+##################################################################################
+#### DESCRIPTION #################################################################
+##################################################################################
+####                                                                          ####
+#### Display info about a tvshow directly in cli by using tvmaze api          ####
+####                                                                          ####
+#### Enjoy another awesome 'bash' script from wuseman. Questions? Conact me!  ####
+####                                                                          ####
+##################################################################################
+#### Begin of code  ##############################################################
+##################################################################################
+
+
+banner() {
+cat <<EOF
+               o
+          o    |
+           \   |
+            \  |
+             \.|-.
+             (\|  )
+    .==================.
+    | .--------------. |
+    | |'::'::'::'::':| |
+    | |::.::.::.::.::| |
+    | |'::'::'::'::':| |
+    | |::.::.::.::.::| |  Author: wuseman
+    | |:'::'::'::'::'| |  Version: 1.0
+    | |::.::.::.::.::| |
+    | '--------------'o|  Usage: wtv show               Display main info for a show
+    | LI LI """""""   o|         wtv show --full        Display full info for a show
+    |==================|         wtv show --minimal     Display minimal info for a show
+    |  .------------.  |         wtv actor --person     Display info about an actor/person
+    | /              \ |
+    |/                \|
+    "                  "
+
+EOF
+}
+
+banner2() {
+
+echo "          _         "
+echo "__      _| |___   __"
+echo "\ \ /\ / / __\ \ / / Author: wuseman"
+echo " \ V  V /| |_ \ V /  Version 1.0"
+echo "  \_/\_/  \__| \_/  "
+echo "                    "
+}
+
+
+
+if [ -z "$1" ]; then
+   banner
+ exit
+fi
+
+tvshow="$(wget -q http://api.tvmaze.com/singlesearch/shows?q=$1 > /dev/null)"
+
+# API LAST EPISODE
+getapi="$(wget -q http://api.tvmaze.com/singlesearch/shows?q=$1 2> /dev/null)"
+prevepisode="$(cat shows\?q\=$1 | awk -F'previousepisode":{"href":"' '{print $2}' | cut -d'"' -f1 | xargs wget -q )"
+getname="$(cat shows\?q\=$1 | awk -F'previousepisode":{"href":"' '{print $2}' | cut -d'"' -f1 | cut -d'/' -f5)"
+
+# INFO LAST EPISODE
+prevepisodename="$(cat $getname | awk -F',"name":"' '{print $2}' | cut -d'"' -f1 )" 
+prevepisodeairtime="$(cat $getname | awk -F',"airdate":"' '{print $2}' | cut -d'"' -f1)"
+season="$(cat $getname | awk -F'season":' '{print $2}' | cut -d'"' -f1 | sed 's/,$//g')"
+episode="$(cat $getname | awk -F'"number":' '{print $2}' | cut -d'"' -f1 | sed 's/,$//g')"
+
+
+
+
+
+if [ -f shows\?q\=$1 ]; then
+title="$(cat shows\?q\=$1 | awk -F'name":"' '{print $2}'  | cut -d'"' -f1)"
+type="$(cat shows\?q\=$1 | awk -F'type":"' '{print $2}'  | cut -d'"' -f1)"
+language="$(cat shows\?q\=$1 | awk -F'language":"' '{print $2}'  | cut -d'"' -f1)"
+genres="$(cat shows\?q\=$1 | awk -F'genres":' '{print $2}' | cut -d']' -f1 | cut -d'[' -f2 | sed 's/["]//g' | sed 's/,/\//g')"
+status="$(cat shows\?q\=$1 | awk -F'status":"' '{print $2}'  | cut -d'"' -f1)"
+runtime="$(cat shows\?q\=$1 | awk -F'runtime":' '{print $2}' | cut -d '"' -f1 | sed 's/,$//g')"
+premiered="$(cat shows\?q\=$1 | awk -F'premiered":"' '{print $2}'  | cut -d'"' -f1)"
+time_aired="$(cat shows\?q\=$1 | cut -d'"' -f44)"
+weekday_aired="$(cat shows\?q\=$1 | cut -d'"' -f48)"
+rating="$(cat shows\?q\=$1 | awk -F'average":' '{print $2}' | cut -d '"' -f1 | sed 's/},$//g')"
+network="$(cat shows\?q\=$1 | awk -F',"name":"' '{print $3}' | cut -d'"' -f1)" 
+webchannel="$(cat shows\?q\=$1 | awk -F'webChannel":' '{print $2}' | cut -d',' -f1)"
+cover="$(cat shows\?q\=$1 | awk -F'original":"' '{print $2}'  | cut -d'"' -f1)"
+officialsite="$(cat shows\?q\=$1 | awk -F'officialSite":"' '{print $2}'  | cut -d'"' -f1)"
+url="$(cat shows\?q\=$1 | awk -F'url":"' '{print $2}'  | cut -d'"' -f1)"
+plot="$(cat shows\?q\=$1 | awk -F'summary":"<p>' '{print $2}' | cut -d'<' -f1)"
+
+if [ "$2" = "--full" ]; then
+banner2
+echo -e "\e[0;1m[WTV DISPLAYING INFO FOR \e[0;1m$1]\e[0m\n"
+echo -e "Title: \e[0;1m$title\e[0m"
+echo -e "Type: \e[0;1m$type\e[0m"
+echo -e "Language: \e[0;1m$language\e[0m"
+echo -e "Genres: \e[0;1m$genres\e[0m"
+echo -e "Status: \e[0;1m$status\e[0m"
+echo -e "Runtime: \e[0;1m$runtime min\e[0m"
+echo -e "Premiered: \e[0;1m$premiered\e[0m"
+echo -e "Rating: \e[0;1m$rating\e[0m"
+echo -e "Network: \e[0;1m$network\e[0m"
+  if [ "$webchannel" = "null" ]; then
+       echo -e "Webchannel: \e[0;1mN/A\e[0m"
+  else
+       echo -e "Webchannel: \e[0;1m$webchannel\e[0m"
+  fi
+echo -e "Last Episode: \e[0;1m$prevepisodename\e[0m"
+echo -e "Last Season: \e[0;1mS$season E$episode\e[0m"
+echo -e "Last Airdate: \e[0;1m$prevepisodeairtime\e[0m"
+echo -e "Cover: \e[0;1m$cover\e[0m"
+echo -e "OfficialSite: \e[0;1m$officialsite\e[0m"
+echo -e "URL: \e[0;1m$url\e[0m"
+echo -e "Plot: \e[0;1m$plot\e[0m"
+
+exit
+fi
+
+if [ "$2" = "--person" ]; then
+person="$(wget -q http://api.tvmaze.com/search/people?q=$1 > /dev/null)"
+name="$(cat people\?q\=$1 | awk -F'name":"' '{print $2}' | cut -d'"' -f1)"
+born="$(cat people\?q\=$1 | awk -F'country":{"name":"' '{print $2}' | cut -d'"' -f1)"
+city="$(cat people\?q\=$1 | awk -F'timezone":"' '{print $2}' | cut -d'/' -f2 | cut -d'"' -f1 | sed 's/_/ /g')"
+birthday="$(cat people\?q\=$1 | awk -F'birthday":"' '{print $2}' | cut -d'"' -f1)"
+deathday="$(cat people\?q\=$1 | awk -F'"deathday":' '{print $2}' | cut -d',' -f1)"
+gender="$(cat people\?q\=$1 | awk -F'gender":"' '{print $2}' | cut -d'"' -f1)"
+picture="$(cat people\?q\=$1 | awk -F'original":"' '{print $2}' | cut -d'"' -f1)"
+url="$(cat people\?q\=$1 | awk -F'url":"' '{print $2}' | cut -d'"' -f1)"
+
+
+echo -e "               o"
+echo -e "          o    |"
+echo -e "           \   |"
+echo -e "            \  |"
+echo -e "             \.|-."
+echo -e "             (\|  )"
+echo -e "    .==================.  "
+echo -e "    | .--------------. |  Name: \e[0m$name\e[0m"
+echo -e "    | |'::'::'::'::':| |  Born: \e[0m$born ($city) \e[0m"
+echo -e "    | |::.::.::.::.::| |  Birthday: \e[0m$birthday\e[0m"
+echo -e "    | |'::'::'::'::':| |  Deathday: \e[0m$deathday\e[0m"
+echo -e "    | |::.::.::.::.::| |  Gender: \e[0m$gender\e[0m"
+echo -e "    | |:'::'::'::'::'| |  Picture: \e[0m$picture\e[0m"
+echo -e "    | |::.::.::.::.::| |  URL: \e[0m$url\e[0m"
+echo -e "    | '--------------'o|  "
+echo -e "    | LI LI -------   o|  "
+echo -e "    |==================|  "
+echo -e "    |  .------------.  |  "
+echo -e "    | /              \ |  "
+echo -e "    |/                \|  "
+echo -e "    "                  ""
+exit
+fi
+
+else
+    echo -e "\n[WTV] Sorry, cant get any info about $1...\n"
+    exit  
+fi
+
+if [ "$2" = "--minimal" ]; then
+echo -e "\nShow: \e[0;1m$title\e[0m - Network: \e[0;1m$network\e[0m\nType: \e[0;1m$type\e[0m - Language: \e[0;1m$language\e[0m - Status: \e[0;1m$status\e[0m\n"
+exit
+fi
+
+echo -e "               o"
+echo -e "          o    |"
+echo -e "           \   |"
+echo -e "            \  |"
+echo -e "             \.|-."
+echo -e "             (\|  )"
+echo -e "    .==================.  "
+echo -e "    | .--------------. |  Title: \e[0;1m$title\e[0m"
+echo -e "    | |'::'::'::'::':| |  Type: \e[0;1m$type \e[0m"
+echo -e "    | |::.::.::.::.::| |  Language: \e[0;1m$language\e[0m"
+echo -e "    | |'::'::'::'::':| |  Genre: \e[0;1m$genres\e[0m"
+echo -e "    | |::.::.::.::.::| |  Status: \e[0;1m$status\e[0m"
+echo -e "    | |:'::'::'::'::'| |  Runtime: \e[0;1m$runtime\e[0m"
+echo -e "    | |::.::.::.::.::| |  Premiered: \e[0;1m$premiered\e[0m"
+echo -e "    | '--------------'o|  Rating: \e[0;1m$rating\e[0m"
+echo -e "    | LI LI -------   o|  Network: \e[0;1m$network\e[0m"
+echo -e "    |==================|  Webchannel: \e[0;1m$webchannel\e[0m"
+echo -e "    |  .------------.  |  Official Site: \e[0;1m$officialsite\e[0m"
+echo -e "    | /              \ |  URL: \e[0;1m$url\e[0m"
+echo -e "    |/                \|  "
+echo -e "    "                  ""
+
+rm $getname
+rm shows*
